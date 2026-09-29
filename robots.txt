@@ -1,0 +1,4 @@
+# La Libreta es una herramienta interna de Lego Marketing.
+# No tiene por qué aparecer en buscadores.
+User-agent: *
+Disallow: /

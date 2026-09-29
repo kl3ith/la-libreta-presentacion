@@ -1,0 +1,49 @@
+# La Libreta — configuración del servidor (Hostinger / LiteSpeed).
+# La app es estática: el servidor sólo entrega archivos. La navegación va por
+# `#`, así que no hace falta reescribir rutas; la regla de abajo existe sólo
+# para que una dirección escrita a mano no termine en un 404 feo.
+
+# Herramienta interna: que no la indexe nadie.
+<IfModule mod_headers.c>
+  Header set X-Robots-Tag "noindex, nofollow"
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Los assets llevan hash en el nombre: se pueden cachear para siempre.
+# El index.html nunca, porque es el que anuncia qué assets tocan hoy.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType audio/mpeg "access plus 1 month"
+</IfModule>
+
+<FilesMatch "\.(js|css)$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </IfModule>
+</FilesMatch>
+
+# El trabajador de servicio NUNCA se cachea: es la pieza que trae las
+# versiones nuevas, y con un año de caché quedaría congelado.
+<FilesMatch "^sw\.js$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, must-revalidate"
+  </IfModule>
+</FilesMatch>
+
+<FilesMatch "^index\.html$">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, must-revalidate"
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
